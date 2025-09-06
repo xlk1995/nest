@@ -13,3 +13,11 @@ user => filter => guard => pipe => controller => interceptor => client
 - params
 - query
 - body
+
+
+### dto
+
+- MaxLength
+- IsNotEmpty
+- IsNumber
+- IsDefined

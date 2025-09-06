@@ -1,81 +1,57 @@
-import {
-    Body,
-    Controller,
-    Delete,
-    Get,
-    NotFoundException,
-    Param,
-    Patch,
-    Post,
-} from '@nestjs/common';
-import { IPostEntity } from '../types';
-import { isNil } from 'lodash';
-
-let posts: IPostEntity[] = [
-    {
-        title: '文章1',
-        body: '内容1',
-    },
-    {
-        title: '文章2',
-        body: '内容2',
-    },
-    {
-        title: '文章3',
-        body: '内容3',
-    },
-    {
-        title: '文章4',
-        body: '内容4',
-    },
-].map((item, index) => ({ ...item, id: index }));
+import { Body, Controller, Delete, Get, Param, Patch, Post, ValidationPipe } from '@nestjs/common';
+import { CreatePostDto } from '../dtos/create-post.dto';
+import { UpdatePostDto } from '../dtos/update-post.dto';
+import { PostService } from '../services/post.service';
 
 @Controller('posts')
 export class PostController {
+    constructor(private readonly postService: PostService) {}
     @Get()
     index() {
-        return posts;
+        return this.postService.findAll();
     }
 
     @Get(':id')
     show(@Param('id') id: number) {
-        const findPost = posts.find((item) => item.id === Number(id));
-        if (isNil(findPost)) {
-            throw new NotFoundException(`文章不存在！`);
-        }
-        return findPost;
+        return this.postService.findOne(id);
     }
 
     @Post()
-    store(@Body() data: IPostEntity) {
-        const id = Math.max(...posts.map((item) => Number(item.id) + 1));
-        const newPost = {
-            ...data,
-            id,
-        };
-        posts.push(newPost);
-        return newPost;
+    store(
+        @Body(
+            new ValidationPipe({
+                transform: true,
+                forbidNonWhitelisted: true,
+                forbidUnknownValues: true,
+                validationError: {
+                    target: false,
+                },
+                groups: ['create'],
+            }),
+        )
+        data: CreatePostDto,
+    ) {
+        return this.postService.create(data);
     }
 
     @Patch()
-    update(@Body() data: IPostEntity) {
-        const findPost = posts.find((item) => item.id === Number(data.id));
-        if (isNil(findPost)) {
-            throw new NotFoundException('文章不存在！');
-        }
-        const newPosts = posts.map((item) =>
-            item.id === Number(data.id) ? { ...findPost, ...data } : item,
-        );
-        return newPosts;
+    update(
+        @Body(
+            new ValidationPipe({
+                transform: true,
+                forbidNonWhitelisted: true,
+                forbidUnknownValues: true,
+                validationError: { target: false },
+                groups: ['update'],
+            }),
+        )
+        data: UpdatePostDto,
+    ) {
+        return this.postService.update(data);
     }
 
     @Delete(':id')
     async delete(@Param('id') id: number) {
-        const findPost = posts.find((item) => item.id === Number(id));
-        if (isNil(findPost)) {
-            throw new NotFoundException('文章不存在！');
-        }
-        posts = posts.filter((item) => item.id !== Number(id));
-        return posts;
+        return this.postService.delete(id);
     }
 }
