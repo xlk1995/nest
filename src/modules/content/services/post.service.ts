@@ -30,7 +30,7 @@ export class PostService {
     }
 
     findOne(id: number) {
-        const post = posts.find((post) => post.id === Number(id));
+        const post = posts.find((post) => post.id === id);
         if (isNil(post)) {
             throw new NotFoundException('Post not found');
         }
@@ -48,23 +48,21 @@ export class PostService {
     }
 
     update({ id, ...data }: UpdatePostDto) {
-        const post = posts.find((item) => item.id === Number(id));
+        const post = posts.find((item) => item.id === id);
         if (isNil(post)) {
             throw new NotFoundException('Post not found');
         }
-        const newPosts = posts.map((item) =>
-            item.id === Number(id) ? { ...item, ...data } : item,
-        );
+        const newPosts = posts.map((item) => (item.id === id ? { ...item, ...data } : item));
         posts = newPosts;
-        return newPosts.find((item) => item.id === Number(id));
+        return newPosts.find((item) => item.id === id);
     }
 
     delete(id: number) {
-        const post = posts.find((item) => item.id === Number(id));
+        const post = posts.find((item) => item.id === id);
         if (isNil(post)) {
             throw new NotFoundException('Post not found');
         }
-        posts = posts.filter((item) => item.id !== Number(id));
+        posts = posts.filter((item) => item.id !== id);
         return post;
     }
 }
